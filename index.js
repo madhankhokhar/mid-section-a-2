@@ -1,91 +1,131 @@
-// index.js
-
 const products = [
   {
     name: "Scooter",
     price: 199.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Scooter",
   },
   {
     name: "Headphones",
     price: 99.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Headphones",
   },
   {
     name: "Smartphone",
     price: 599.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Smartphone",
   },
   {
     name: "Laptop",
     price: 999.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Laptop",
   },
   {
     name: "Watch",
     price: 149.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Watch",
   },
   {
     name: "Sunglasses",
     price: 49.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Sunglasses",
   },
   {
     name: "Backpack",
     price: 79.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Backpack",
   },
   {
     name: "Gaming Console",
     price: 399.99,
+    imageUrl: "https://api.dicebear.com/8.x/icons/svg?seed=Gaming%20Console",
   },
 ];
 
 const container = document.getElementById("product-container");
-const cart = document.getElementById("cart");
+const cartDiv = document.getElementById("cart");
+let cart = [];
 
-const cartProducts = [];
 
-products.forEach((product) => {
-  const productDiv = document.createElement("div");
-  productDiv.classList.add("product");
+function displayProducts() {
+  products.forEach((product) => {
+    const productDiv = document.createElement("div");
+    productDiv.classList.add("product");
 
-  const name = document.createElement("h2");
-  name.textContent = product.name;
+    const imageContainer = document.createElement("div");
+    imageContainer.classList.add("image-container");
 
-  const price = document.createElement("p");
-  price.textContent = "$" + product.price.toFixed(2);
+    const image = document.createElement("img");
+    image.src = product.imageUrl;
+    image.alt = product.name;
+    image.classList.add("product-image");
 
-  const button = document.createElement("button");
-  button.textContent = "Add to Cart";
-  button.classList.add("add-to-cart-btn");
-  button.addEventListener("click", () => {
-    addToCart(product);
+    imageContainer.appendChild(image);
+
+    const infoDiv = document.createElement("div");
+    infoDiv.classList.add("info");
+
+    const name = document.createElement("h2");
+    name.textContent = product.name;
+
+    const price = document.createElement("p");
+    price.textContent = "$" + product.price.toFixed(2);
+
+    const button = document.createElement("button");
+    button.textContent = "Add to Cart";
+    button.classList.add("add-to-cart-btn");
+    button.addEventListener("click", function() {
+      addToCart(product);
+    });
+
+    infoDiv.appendChild(name);
+    infoDiv.appendChild(price);
+    infoDiv.appendChild(button);
+
+    productDiv.appendChild(imageContainer);
+    productDiv.appendChild(infoDiv);
+
+    container.appendChild(productDiv);
   });
-
-  productDiv.appendChild(name);
-  productDiv.appendChild(price);
-  productDiv.appendChild(button);
-
-  container.appendChild(productDiv);
-});
-
+}
 
 function addToCart(product) {
-  cartProducts.push(product);
-  renderCart();
+  const existingCartItem = cart.find(item => item.name === product.name);
+  if (existingCartItem) {
+    existingCartItem.quantity++;
+  } else {
+    cart.push({...product, quantity: 1});
+  }
+  displayCart();
 }
 
-
-function renderCart() {
-
-  cart.innerHTML = "";
-  cartProducts.forEach((product) => {
+function displayCart() {
+  cartDiv.innerHTML = "";
+  let totalPrice = 0;
+  cart.forEach((product) => {
     const cartItem = document.createElement("div");
-    const productName = document.createElement("span");
-    productName.textContent = product.name;
-
-    const productPrice = document.createElement("span");
-    productPrice.textContent = "$" + product.price.toFixed(2);
-
-    cartItem.appendChild(productName);
-    cartItem.appendChild(document.createTextNode(" - ")); 
-    cartItem.appendChild(productPrice);
-
-    cart.appendChild(cartItem);
+    cartItem.innerHTML = `
+      <p>${product.name} - $${(product.price * product.quantity).toFixed(2)}</p>
+      <input type="number" min="1" value="${product.quantity}" onchange="updateQuantity('${product.name}', this.value)">
+      <button onclick="removeFromCart('${product.name}')">Remove</button>
+    `;
+    cartDiv.appendChild(cartItem);
+    totalPrice += product.price * product.quantity;
   });
+  cartDiv.innerHTML += `<p>Total Price: $${totalPrice.toFixed(2)}</p>`;
 }
+
+
+function removeFromCart(productName) {
+  cart = cart.filter((product) => product.name !== productName);
+  displayCart();
+}
+
+
+function updateQuantity(productName, quantity) {
+  const product = cart.find(item => item.name === productName);
+  product.quantity = parseInt(quantity);
+  displayCart();
+}
+
+
+displayProducts();
